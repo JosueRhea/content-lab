@@ -3,12 +3,12 @@
 Every resource here exists to delete a specific pain from Part 1. Say which one,
 each time — that's what makes this land instead of being a syntax tour.
 
-| Pain from Part 1 | Fixed by | File |
+| Pain from Part 1 | Fixed by | Where |
 |---|---|---|
-| IP changed on reboot, broke every URL | `aws_eip` — stable identity, known *before* boot | `instance.tf` |
-| Secrets typed by hand into `.env` | Secrets Manager + instance role | `secrets.tf`, `iam.tf` |
-| "did I leave 5432 open?" | SG as reviewable code, no :22, no :5432 | `security.tf` |
-| DB died with the instance | separate encrypted EBS volume | `storage.tf` |
+| IP changed on reboot, broke every URL | `aws_eip` — stable identity, known *before* boot | `main.tf` &rarr; COMPUTE |
+| Secrets typed by hand into `.env` | Secrets Manager + instance role | `main.tf` &rarr; SECRETS + IAM |
+| "did I leave 5432 open?" | SG as reviewable code, no :22, no :5432 | `main.tf` &rarr; SECURITY |
+| DB died with the instance | separate encrypted EBS volume | `main.tf` &rarr; STORAGE |
 | 25 minutes of clicking | `user-data.sh`, ~6 min unattended | `user-data.sh` |
 
 ## Run it
@@ -43,7 +43,7 @@ effect: those keys never touch your laptop or your shell history.
 secrets vanish, it moves where they live — which is why the S3 backend sets
 `encrypt = true`. Being honest about this buys more credibility than skipping it.
 
-**`use_lockfile = true`** (see `versions.tf`) — since Terraform 1.10, S3 does its
+**`use_lockfile = true`** (top of `main.tf`) — since Terraform 1.10, S3 does its
 own state locking and the old DynamoDB lock table is obsolete. Most tutorials
 still tell people to create that table.
 

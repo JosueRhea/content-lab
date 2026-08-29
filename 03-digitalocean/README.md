@@ -38,12 +38,15 @@ authenticate with; there's nothing here to port that to.
 
 That's the whole lesson in one command.
 
-## Files
+## Layout
 
-| File | Note |
+Conventional three-file layout: `main.tf`, `variables.tf`, `outputs.tf`.
+`main.tf` reads top to bottom in the order you would present it.
+
+| Section in `main.tf` | Note |
 |---|---|
-| `network.tf` | One VPC replaces five AWS resources — plus the deny-all-outbound gotcha |
-| `droplet.tf` | Reserved IP allocated before the droplet, so URLs are right on first boot |
-| `secrets.tf` | Mostly a comment explaining what can't be done here |
-| `storage.tf` | Volume resolved by *name*; AWS resolved by ID |
-| `user-data.sh` | Same shape as AWS, minus the Secrets Manager fetch |
+| NETWORK | One VPC replaces five AWS resources |
+| SECRETS | Mostly a comment explaining what can't be done here |
+| STORAGE | Volume resolved by *name*; AWS resolved by ID |
+| COMPUTE | Reserved IP allocated before the droplet, so URLs are right on first boot |
+| FIREWALL | Outbound is deny-all once this exists — the gotcha that hangs cloud-init |

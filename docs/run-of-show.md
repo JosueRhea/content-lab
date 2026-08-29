@@ -22,8 +22,8 @@ both have prepared filler.
 
 | # | Time | Beat | Notes |
 |---|---|---|---|
-| 11 | 0:25 | Walk `security.tf` — no :22, no :5432 | least privilege, visible |
-| 12 | 0:28 | Walk `secrets.tf` — and admit state holds plaintext | credibility beat |
+| 11 | 0:25 | Walk the SECURITY section of `main.tf` — no :22, no :5432 | least privilege, visible |
+| 12 | 0:28 | Walk the SECRETS section — and admit state holds plaintext | credibility beat |
 | 13 | 0:31 | `terraform plan` — read it aloud | this is the pitch |
 | 14 | 0:34 | `terraform apply` | ~2 min for AWS resources |
 | 15 | 0:36 | **WAIT ~6 min: cloud-init** | ⚠️ tail the boot log; explain EIP-known-before-boot |
