@@ -91,15 +91,21 @@ data "digitalocean_image" "ubuntu" {
   slug = "ubuntu-24-04-x64"
 }
 
-resource "digitalocean_ssh_key" "deploy" {
-  name       = "${var.name}-key"
-  public_key = file(pathexpand(var.ssh_public_key))
-}
-
 # AWS aws_eip -> DO reserved IP. Allocated on its own, BEFORE the droplet exists,
 # so its address can be baked into user_data. That is what makes the public URLs
 # correct on first boot -- the single best beat in the AWS build, and it survives
 # the port intact.
+resource "digitalocean_ssh_key" "deploy" {
+  count      = var.create_ssh_key ? 1 : 0
+  name       = "${var.name}-key"
+  public_key = file(pathexpand(var.ssh_public_key))
+}
+
+locals {
+  # Whichever path was chosen, the droplet just needs a fingerprint.
+  ssh_fingerprint = var.create_ssh_key ? digitalocean_ssh_key.deploy[0].fingerprint : var.ssh_key_fingerprint
+}
+
 resource "digitalocean_reserved_ip" "supabase" {
   region = var.region
 }
@@ -110,7 +116,7 @@ resource "digitalocean_droplet" "supabase" {
   region   = var.region
   size     = var.droplet_size
   vpc_uuid = digitalocean_vpc.main.id
-  ssh_keys = [digitalocean_ssh_key.deploy.fingerprint]
+  ssh_keys = [local.ssh_fingerprint]
 
   # DO charges separately for this and it is off by default. AWS gives you
   # CloudWatch basics for free; here you opt in.

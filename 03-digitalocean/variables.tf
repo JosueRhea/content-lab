@@ -30,16 +30,47 @@ variable "data_volume_gb" {
   default     = 20
 }
 
-variable "ssh_public_key" {
-  description = <<-DESC
-    Path to the public key allowed to SSH in.
+# Two ways in, because both situations are common:
+#   - you already have a key on your DO account  -> reference it by fingerprint
+#   - fresh account, no keys yet                 -> let Terraform upload one
+#
+# Referencing is the default because DO rejects re-uploading a key it already
+# has (422), and because a Terraform-managed key gets DELETED from your account
+# on destroy -- unpleasant if you use that key anywhere else.
 
-    Note this variable has no AWS counterpart: that build used SSM Session Manager
-    and opened no SSH port at all. DigitalOcean has no equivalent, so SSH is the
-    only way in. See docs/aws-vs-digitalocean.md.
+variable "create_ssh_key" {
+  description = <<-DESC
+    true  -> upload var.ssh_public_key to your DO account (use on a fresh account).
+             NOTE: `terraform destroy` will then REMOVE that key from your account.
+    false -> reference an existing key via var.ssh_key_fingerprint (default).
   DESC
+  type        = bool
+  default     = false
+}
+
+variable "ssh_public_key" {
+  description = "Path to the public key to upload. Only used when create_ssh_key = true."
   type        = string
   default     = "~/.ssh/id_ed25519.pub"
+}
+
+variable "ssh_key_fingerprint" {
+  description = <<-DESC
+    MD5 fingerprint of a key already on your DO account. Only used when
+    create_ssh_key = false.
+
+      ssh-keygen -lf ~/.ssh/id_ed25519.pub -E md5 | awk '{print $2}' | sed 's/^MD5://'
+
+    No AWS counterpart: that build used SSM Session Manager and opened no SSH
+    port at all.
+  DESC
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.create_ssh_key || length(var.ssh_key_fingerprint) > 0
+    error_message = "Set ssh_key_fingerprint to a key already on your DO account, or set create_ssh_key = true to upload ssh_public_key."
+  }
 }
 
 variable "ssh_allowed_cidr" {
