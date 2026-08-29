@@ -53,8 +53,13 @@ if [[ ! -d "$REPO/.git" ]]; then
   git clone --filter=blob:none --no-checkout https://github.com/supabase/supabase.git "$REPO"
   git -C "$REPO" sparse-checkout set --cone docker
 fi
-git -C "$REPO" fetch --depth 1 origin "${supabase_commit}"
+# HEAD works whatever upstream calls its default branch (supabase uses master).
+if ! git -C "$REPO" fetch --depth 1 origin "${supabase_commit}"; then
+  echo "!! cannot fetch ref '${supabase_commit}' -- use HEAD or a real SHA" >&2
+  exit 1
+fi
 git -C "$REPO" checkout --detach FETCH_HEAD
+[[ -d "$REPO/docker" ]] || { echo "!! no docker/ after checkout -- wrong ref" >&2; exit 1; }
 echo "==> supabase pinned at $(git -C "$REPO" rev-parse --short HEAD)"
 
 cd "$REPO/docker"

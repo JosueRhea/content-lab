@@ -46,7 +46,7 @@ variable "allowed_cidr" {
 }
 
 variable "supabase_commit" {
-  description = "Pinned Supabase commit/tag. Do not leave this on main for a live demo."
+  description = "Pinned Supabase commit. HEAD tracks upstream's default branch (master).\n  Do not leave this unpinned for a live demo."
   type        = string
-  default     = "main"
+  default     = "HEAD"
 }
