@@ -1,0 +1,422 @@
+<title>Supabase Live Rundown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+<style>
+:root{
+  --paper:#F4F6F5; --surface:#FFFFFF; --surface-2:#EDF1F0;
+  --ink:#151A1E; --ink-2:#4A555E; --ink-3:#78838C; --rule:#DCE3E1;
+  --accent:#2F4858; --accent-soft:#E4EBEE;
+  --wait:#9A6416; --wait-bg:#FBF1DF; --wait-edge:#E3B565;
+  --trap:#A4433A; --trap-bg:#FAEBE8; --trap-edge:#D89B93;
+  --go:#33654A; --go-bg:#E7F1EA; --go-edge:#8FBBA1;
+  --shadow:0 1px 2px rgba(21,26,30,.05),0 8px 24px -12px rgba(21,26,30,.15);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F1315; --surface:#171C1F; --surface-2:#1E2428;
+  --ink:#E7ECEA; --ink-2:#A4AFB2; --ink-3:#7A868B; --rule:#283034;
+  --accent:#93B6C8; --accent-soft:#1C262B;
+  --wait:#DDA65B; --wait-bg:#2A2013; --wait-edge:#6B4F22;
+  --trap:#DC8A81; --trap-bg:#2C1A18; --trap-edge:#6E3A34;
+  --go:#84B99C; --go-bg:#15241B; --go-edge:#33684A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --paper:#0F1315; --surface:#171C1F; --surface-2:#1E2428;
+  --ink:#E7ECEA; --ink-2:#A4AFB2; --ink-3:#7A868B; --rule:#283034;
+  --accent:#93B6C8; --accent-soft:#1C262B;
+  --wait:#DDA65B; --wait-bg:#2A2013; --wait-edge:#6B4F22;
+  --trap:#DC8A81; --trap-bg:#2C1A18; --trap-edge:#6E3A34;
+  --go:#84B99C; --go-bg:#15241B; --go-edge:#33684A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.55; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 96px}
+
+/* ---------- masthead ---------- */
+header.mast{padding:56px 0 28px;border-bottom:2px solid var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3); margin:0 0 14px;
+}
+h1{
+  font-size:clamp(34px,5.5vw,52px); font-weight:700; letter-spacing:-.022em;
+  line-height:1.04; margin:0 0 16px; text-wrap:balance;
+}
+.standfirst{
+  font-family:Newsreader,Georgia,serif; font-size:19px; line-height:1.5;
+  color:var(--ink-2); max-width:60ch; margin:0;
+}
+.standfirst em{color:var(--ink);font-style:italic}
+
+/* ---------- clock ---------- */
+.clockbar{
+  position:sticky; top:0; z-index:20; margin-top:0;
+  background:var(--surface); border:1px solid var(--rule); border-top:none;
+  border-radius:0 0 10px 10px; box-shadow:var(--shadow);
+  display:flex; align-items:center; gap:16px; padding:11px 16px; flex-wrap:wrap;
+}
+.clock{
+  font-family:"IBM Plex Mono",monospace; font-size:26px; font-weight:600;
+  font-variant-numeric:tabular-nums; letter-spacing:-.02em; color:var(--ink);
+}
+.clock.idle{color:var(--ink-3)}
+.btn{
+  font-family:Archivo,sans-serif; font-size:13px; font-weight:600;
+  padding:7px 15px; border-radius:6px; border:1px solid var(--accent);
+  background:var(--accent); color:var(--surface); cursor:pointer;
+  transition:opacity .15s ease;
+}
+.btn:hover{opacity:.85}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cue{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);
+  margin-left:auto;font-variant-numeric:tabular-nums;
+}
+.cue b{color:var(--ink-2);font-weight:600}
+
+/* ---------- sections ---------- */
+section{margin-top:48px}
+h2{
+  font-size:13px;font-weight:600;font-family:"IBM Plex Mono",monospace;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 6px;padding-bottom:10px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:baseline;gap:12px;
+}
+h2 .dur{margin-left:auto;color:var(--ink-3);font-weight:400;letter-spacing:.06em}
+
+/* ---------- rundown rows ---------- */
+.rundown{display:flex;flex-direction:column;gap:0}
+.beat{
+  display:grid; grid-template-columns:58px 1fr; gap:0 18px;
+  padding:15px 16px 15px 14px; border-bottom:1px solid var(--rule);
+  border-left:3px solid transparent; align-items:baseline;
+  transition:background .2s ease,border-color .2s ease;
+}
+.beat .tc{
+  font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:500;
+  font-variant-numeric:tabular-nums;color:var(--ink-3);letter-spacing:-.02em;
+}
+.beat .what{font-size:15.5px;font-weight:500;line-height:1.45;color:var(--ink)}
+.beat .note{
+  font-family:Newsreader,Georgia,serif;font-size:15px;font-style:italic;
+  color:var(--ink-2);margin-top:4px;line-height:1.45;
+}
+.beat code{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;font-style:normal;
+  background:var(--surface-2);padding:1.5px 5px;border-radius:4px;color:var(--ink);
+}
+.beat.is-now{background:var(--accent-soft);border-left-color:var(--accent)}
+.beat.is-now .tc{color:var(--accent);font-weight:600}
+
+/* beat types encode what kind of moment it is */
+.beat.wait{background:var(--wait-bg);border-left-color:var(--wait-edge)}
+.beat.wait .tc{color:var(--wait)}
+.beat.trap{background:var(--trap-bg);border-left-color:var(--trap-edge)}
+.beat.trap .tc{color:var(--trap)}
+.beat.go{background:var(--go-bg);border-left-color:var(--go-edge)}
+.beat.go .tc{color:var(--go)}
+.tag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:3px;margin-right:9px;vertical-align:2px;
+}
+.tag.wait{background:var(--wait);color:var(--wait-bg)}
+.tag.trap{background:var(--trap);color:var(--trap-bg)}
+.tag.go{background:var(--go);color:var(--go-bg)}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+  padding:22px 24px;box-shadow:var(--shadow);
+}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.say{font-family:Newsreader,Georgia,serif;font-size:16.5px;line-height:1.6;color:var(--ink-2)}
+.say strong{color:var(--ink);font-weight:500}
+.say h3{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--wait);
+  margin:0 0 10px;
+}
+
+/* ---------- checklist ---------- */
+ul.check{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+ul.check li{display:flex;gap:11px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--rule)}
+ul.check li:last-child{border-bottom:none}
+ul.check input{margin:4px 0 0;accent-color:var(--accent);width:15px;height:15px;flex:none;cursor:pointer}
+ul.check label{cursor:pointer;line-height:1.5}
+ul.check .why{display:block;font-family:Newsreader,Georgia,serif;font-style:italic;color:var(--ink-2);font-size:14.5px}
+ul.check code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);padding:1.5px 5px;border-radius:4px}
+
+/* ---------- table ---------- */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th{
+  text-align:left;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  padding:0 14px 9px 0;border-bottom:1px solid var(--rule);
+}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.45}
+td:last-child,th:last-child{padding-right:0}
+td code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);padding:1.5px 5px;border-radius:4px}
+tr.scheduled td:first-child{color:var(--trap);font-weight:500}
+.hint{font-family:Newsreader,Georgia,serif;font-style:italic;color:var(--ink-2)}
+
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);color:var(--ink-3);font-size:13.5px}
+footer strong{color:var(--ink-2);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:560px){
+  .beat{grid-template-columns:1fr;gap:3px}
+  .beat .tc{font-size:12px}
+  .cue{margin-left:0;width:100%}
+}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Content Lab &middot; Live Demo</p>
+  <h1>Self-hosted Supabase, by hand then as code</h1>
+  <p class="standfirst">Build it manually on EC2 and hit three real failures. Then rebuild it in Terraform, where each one becomes structurally impossible. <em>The Terraform half only lands if they watched you suffer first.</em></p>
+</header>
+
+<div class="clockbar">
+  <span class="clock idle" id="clock">00:00</span>
+  <button class="btn" id="toggle">Start</button>
+  <button class="btn ghost" id="reset">Reset</button>
+  <span class="cue" id="cue">Runtime <b>50 min</b> &middot; 2 scheduled waits</span>
+</div>
+
+<section>
+  <h2>Before you go live</h2>
+  <ul class="check">
+    <li><input type="checkbox" id="c1"><label for="c1">Pin <code>supabase_commit</code> to a SHA<span class="why">Upstream's .env.example changes shape between releases. Rehearse and present on the same commit, or you get ambushed on stage. <code>git ls-remote https://github.com/supabase/supabase.git HEAD</code></span></label></li>
+    <li><input type="checkbox" id="c2"><label for="c2">Rehearse once, end to end<span class="why">Mainly to time the image pull on the day's network — it's the longest silence in the show.</span></label></li>
+    <li><input type="checkbox" id="c3"><label for="c3">Set an AWS budget alert<span class="why">Under $1 for the session, but it's a good on-camera moment regardless.</span></label></li>
+    <li><input type="checkbox" id="c4"><label for="c4">Pre-launch the Part 1 instance<span class="why">Optional. The Docker install is two unglamorous minutes you can skip.</span></label></li>
+    <li><input type="checkbox" id="c5"><label for="c5">Have the 13-container diagram ready<span class="why">It's your filler for the first wait. Don't improvise it.</span></label></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Part 1 &middot; Manual <span class="dur">25 min &middot; the pain</span></h2>
+  <div class="rundown" id="rundown">
+
+    <div class="beat" data-start="0">
+      <span class="tc">0:00</span>
+      <div><div class="what">Frame it: &ldquo;Managed Supabase is $25 a month. What are you actually paying for?&rdquo;</div>
+      <div class="note">Promises the payoff. Everything after this is the answer.</div></div>
+    </div>
+
+    <div class="beat" data-start="120">
+      <span class="tc">0:02</span>
+      <div><div class="what">Launch EC2 in the console — t3.medium, 30&nbsp;GB gp3, inbound :8000</div>
+      <div class="note">Say why micro fails out loud: thirteen containers will OOM. That limit <em>is</em> the product managed Supabase sells.</div></div>
+    </div>
+
+    <div class="beat" data-start="300">
+      <span class="tc">0:05</span>
+      <div><div class="what">Get a shell with <code>aws ssm start-session</code>, then <code>./00-preflight.sh</code></div>
+      <div class="note">No SSH key, no bastion, no open port 22 &mdash; reliably surprises half the room. Preflight then fails fast on RAM, disk and egress, before you have spent a minute on anything.</div></div>
+    </div>
+
+    <div class="beat" data-start="420">
+      <span class="tc">0:07</span>
+      <div><div class="what"><code>./10-install-docker.sh</code>, then <code>./20-fetch-supabase.sh</code></div>
+      <div class="note">Two steps, not one. Each prints the next, and a failure costs you one step instead of the whole build.</div></div>
+    </div>
+
+    <div class="beat" data-start="540">
+      <span class="tc">0:09</span>
+      <div><div class="what"><code>./40-configure-env.sh &lt;IP&gt;</code>, then <code>./50-up.sh</code></div>
+      <div class="note">40 mints the JWTs and patches .env by key. 50 pulls, starts, and blocks until Kong actually answers &mdash; so &ldquo;READY&rdquo; means ready, not &ldquo;containers created&rdquo;.</div></div>
+    </div>
+
+    <div class="beat wait" data-start="660">
+      <span class="tc">0:11</span>
+      <div><div class="what"><span class="tag wait">Wait 5 min</span>Image pull</div>
+      <div class="note">Don't fight it — this is the architecture segment. Diagram below.</div></div>
+    </div>
+
+    <div class="beat go" data-start="960">
+      <span class="tc">0:16</span>
+      <div><div class="what"><span class="tag go">Payoff</span>Studio loads. Drop the URL in chat.</div>
+      <div class="note">First real moment. Let them poke at it while you talk.</div></div>
+    </div>
+
+    <div class="beat trap" data-start="1080">
+      <span class="tc">0:18</span>
+      <div><div class="what"><span class="tag trap">Trap 1</span>JWT mismatch — Studio loads, every API call 401s</div>
+      <div class="note">The reveal: anon and service_role aren't random strings, they're HS256 JWTs signed with JWT_SECRET. Paste one into jwt.io on screen — payload readable, signature is what fails.</div></div>
+    </div>
+
+    <div class="beat trap" data-start="1260">
+      <span class="tc">0:21</span>
+      <div><div class="what"><span class="tag trap">Trap 2</span><code>localhost</code> in the public URLs</div>
+      <div class="note">SUPABASE_PUBLIC_URL is consumed by the browser, not the server — so localhost resolves to the viewer's own laptop. Best taught by having chat confirm it breaks for them too.</div></div>
+    </div>
+
+    <div class="beat trap" data-start="1380">
+      <span class="tc">0:23</span>
+      <div><div class="what"><span class="tag trap">Trap 3</span>Hand-edit the database, then terminate the instance</div>
+      <div class="note">The table, the data, the .env, the keys — all gone. Nothing you did was written down anywhere. Hand off: &ldquo;what if the machine were code?&rdquo;</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Part 2 &middot; Terraform <span class="dur">20 min &middot; the relief</span></h2>
+  <div class="rundown">
+    <div class="beat" data-start="1500">
+      <span class="tc">0:25</span>
+      <div><div class="what">Walk <code>security.tf</code> — no :22, no :5432, and say why</div>
+      <div class="note">Least privilege you can actually see. In Part 1 it was very tempting to open Postgres &ldquo;just for psql.&rdquo;</div></div>
+    </div>
+    <div class="beat" data-start="1680">
+      <span class="tc">0:28</span>
+      <div><div class="what">Walk <code>secrets.tf</code> — and admit state holds them in plaintext</div>
+      <div class="note">Terraform doesn't make secrets vanish, it moves where they live. Owning that buys more credibility than skipping it.</div></div>
+    </div>
+    <div class="beat" data-start="1860">
+      <span class="tc">0:31</span>
+      <div><div class="what"><code>terraform plan</code> — read it aloud</div>
+      <div class="note">This is the pitch. Every line is a thing you clicked by hand twenty minutes ago.</div></div>
+    </div>
+    <div class="beat" data-start="2040">
+      <span class="tc">0:34</span>
+      <div><div class="what"><code>terraform apply</code></div></div>
+    </div>
+    <div class="beat wait" data-start="2160">
+      <span class="tc">0:36</span>
+      <div><div class="what"><span class="tag wait">Wait 6 min</span>cloud-init</div>
+      <div class="note">Tail the boot log on screen and narrate. Filler below.</div></div>
+    </div>
+    <div class="beat go" data-start="2520">
+      <span class="tc">0:42</span>
+      <div><div class="what"><span class="tag go">Payoff</span>Studio up, correct URL on the first try</div>
+      <div class="note">The Elastic IP was known <em>before</em> the instance booted, so trap 2 is now impossible by construction. Best &ldquo;oh&rdquo; moment in the build — don't rush it.</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The close <span class="dur">5 min</span></h2>
+  <div class="rundown">
+    <div class="beat" data-start="2640">
+      <span class="tc">0:44</span>
+      <div><div class="what">Terminate the Terraform instance, same as you killed the manual one</div></div>
+    </div>
+    <div class="beat go" data-start="2700">
+      <span class="tc">0:45</span>
+      <div><div class="what"><span class="tag go">Close</span><code>terraform apply</code> — same IP, same URL, same data</div>
+      <div class="note">The volume outlived the instance. The manual box needed 25 minutes of clicking; this needed one command.</div></div>
+    </div>
+    <div class="beat" data-start="2880">
+      <span class="tc">0:48</span>
+      <div><div class="what"><code>terraform destroy</code>, on camera</div>
+      <div class="note">Audiences remember who cleans up.</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Filler for the two waits</h2>
+  <div class="grid2">
+    <div class="card say">
+      <h3>Wait 1 &middot; image pull &middot; 5 min</h3>
+      <p>The thirteen containers. <strong>Kong</strong> is the only front door. <strong>GoTrue</strong> does auth. <strong>PostgREST</strong> turns tables into a REST API. <strong>Realtime</strong> tails the write-ahead log. <strong>Storage</strong> fronts S3-compatible objects. <strong>Studio</strong> is just a client of all of them.</p>
+      <p>Land the point: managed Supabase runs this same stack, per tenant. You're not looking at a toy version.</p>
+    </div>
+    <div class="card say">
+      <h3>Wait 2 &middot; cloud-init &middot; 6 min</h3>
+      <p>Tail <code>/var/log/supabase-boot.log</code> and narrate what scrolls past.</p>
+      <p>Good moment for the detour: <strong>Terraform has no HMAC function</strong>, so the anon and service_role JWTs can't be signed in HCL. They're derived at boot instead — which means those keys never touch your laptop or your shell history.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>If it breaks live</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Symptom</th><th>Cause</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><td>Containers OOM-killed</td><td>Undersized instance</td><td>You're on micro. <code>00-preflight.sh</code> would have caught it.</td></tr>
+      <tr class="scheduled"><td>Studio loads, everything 401s</td><td>JWT mismatch</td><td class="hint">That's trap 1 arriving early. Lean in.</td></tr>
+      <tr class="scheduled"><td>Studio loads, nothing responds</td><td><code>SUPABASE_PUBLIC_URL</code></td><td class="hint">That's trap 2 arriving early. Lean in.</td></tr>
+      <tr><td><code>analytics</code> crash-looping</td><td>Logflare vars, version drift</td><td>You're not on the pinned SHA.</td></tr>
+      <tr><td>cloud-init silent</td><td>Volume may not have attached</td><td>Check <code>/var/log/supabase-boot.log</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="hint" style="margin-top:16px">Two of these five failure modes <em>are</em> scheduled content. If they show up early you're not recovering — you're ahead of schedule.</p>
+</section>
+
+<footer>
+  <strong>Cost</strong> — two t3.medium at ~$0.083/hr combined, 50&nbsp;GB gp3 at ~$0.005/hr, Elastic IP free while attached, Secrets Manager $0.40/mo prorated. A two-hour session with rehearsal lands under <strong>$1</strong>. It bills whether or not you're watching, so run the teardown live.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var t0=null, tick=null, elapsed=0;
+  var clock=document.getElementById('clock'),
+      toggle=document.getElementById('toggle'),
+      reset=document.getElementById('reset'),
+      cue=document.getElementById('cue'),
+      beats=Array.prototype.slice.call(document.querySelectorAll('.beat'));
+
+  function fmt(s){
+    var m=Math.floor(s/60), r=Math.floor(s%60);
+    return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;
+  }
+  function highlight(){
+    var current=null;
+    beats.forEach(function(b){
+      b.classList.remove('is-now');
+      if(parseInt(b.dataset.start,10)<=elapsed) current=b;
+    });
+    if(current){
+      current.classList.add('is-now');
+      var what=current.querySelector('.what');
+      cue.innerHTML='Now &middot; <b>'+(what?what.textContent.trim().slice(0,46):'')+'</b>';
+    }
+  }
+  function render(){
+    elapsed=Math.floor((Date.now()-t0)/1000);
+    clock.textContent=fmt(elapsed);
+    highlight();
+  }
+  toggle.addEventListener('click',function(){
+    if(tick){
+      clearInterval(tick); tick=null; toggle.textContent='Resume';
+    }else{
+      t0=Date.now()-elapsed*1000;
+      clock.classList.remove('idle');
+      tick=setInterval(render,1000); render();
+      toggle.textContent='Pause';
+    }
+  });
+  reset.addEventListener('click',function(){
+    clearInterval(tick); tick=null; elapsed=0; t0=null;
+    clock.textContent='00:00'; clock.classList.add('idle');
+    toggle.textContent='Start';
+    beats.forEach(function(b){b.classList.remove('is-now')});
+    cue.innerHTML='Runtime <b>50 min</b> &middot; 2 scheduled waits';
+  });
+
+  // Checklist state is a per-presenter convenience; storage may be unavailable.
+  document.querySelectorAll('ul.check input').forEach(function(box){
+    try{ if(localStorage.getItem('sb-prep-'+box.id)==='1') box.checked=true; }catch(e){}
+    box.addEventListener('change',function(){
+      try{ localStorage.setItem('sb-prep-'+box.id, box.checked?'1':'0'); }catch(e){}
+    });
+  });
+})();
+</script>

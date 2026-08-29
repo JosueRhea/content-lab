@@ -1,0 +1,10 @@
+# State holds every generated secret in PLAINTEXT. Never commit it.
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+crash.log
+
+.env
+*.bak
