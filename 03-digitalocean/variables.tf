@@ -59,3 +59,17 @@ variable "supabase_commit" {
   type        = string
   default     = "HEAD"
 }
+
+variable "wait_for_ready" {
+  description = <<-DESC
+    Block `apply` until the Supabase endpoint actually answers.
+
+    Terraform's job ends when DigitalOcean acknowledges the droplet, but cloud-init
+    then runs for another 5-8 minutes. With this off, apply prints a studio_url
+    that does not work yet.
+
+    Set false to demonstrate that gap on purpose.
+  DESC
+  type        = bool
+  default     = true
+}

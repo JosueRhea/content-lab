@@ -276,3 +276,44 @@ resource "aws_eip_association" "supabase" {
   instance_id   = aws_instance.supabase.id
   allocation_id = aws_eip.supabase.id
 }
+
+# =============================================================================
+# READINESS -- make "apply complete" mean "Supabase actually answers"
+# =============================================================================
+
+# Outputs print only after every resource finishes, so gating on this makes the
+# URL in the outputs a working URL rather than a promise.
+resource "terraform_data" "ready" {
+  count = var.wait_for_ready ? 1 : 0
+
+  depends_on = [
+    aws_eip_association.supabase,
+    aws_volume_attachment.data,
+  ]
+
+  # Re-run the wait whenever the instance is replaced.
+  triggers_replace = [aws_instance.supabase.id]
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<-EOT
+      set -u
+      IP='${aws_eip.supabase.public_ip}'
+      echo "Waiting for Supabase at http://$IP:8000"
+      echo "First boot installs Docker and pulls ~13 images -- typically 5-8 min."
+      for i in $(seq 1 150); do
+        # Any HTTP response means the gateway is live; 401 counts. Only a
+        # connection failure makes curl non-zero here (no -f).
+        if curl -s -o /dev/null --max-time 5 "http://$IP:8000/"; then
+          echo "Supabase answered after $((i * 10))s."
+          exit 0
+        fi
+        if [ $((i % 6)) -eq 0 ]; then echo "  ... still booting, $((i * 10))s elapsed"; fi
+        sleep 10
+      done
+      echo "Timed out after 25 min. Read the boot log:" >&2
+      echo "  aws ssm start-session --target ${aws_instance.supabase.id} --region ${var.region} --document-name AWS-StartInteractiveCommand --parameters command='tail -50 /var/log/supabase-boot.log'" >&2
+      exit 1
+    EOT
+  }
+}

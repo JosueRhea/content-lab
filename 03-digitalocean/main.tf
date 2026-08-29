@@ -177,3 +177,40 @@ resource "digitalocean_firewall" "supabase" {
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
 }
+
+# =============================================================================
+# READINESS -- make "apply complete" mean "Supabase actually answers"
+# =============================================================================
+
+resource "terraform_data" "ready" {
+  count = var.wait_for_ready ? 1 : 0
+
+  depends_on = [
+    digitalocean_reserved_ip_assignment.supabase,
+    digitalocean_volume_attachment.data,
+    digitalocean_firewall.supabase,
+  ]
+
+  triggers_replace = [digitalocean_droplet.supabase.id]
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<-EOT
+      set -u
+      IP='${digitalocean_reserved_ip.supabase.ip_address}'
+      echo "Waiting for Supabase at http://$IP:8000"
+      echo "First boot installs Docker and pulls ~13 images -- typically 5-8 min."
+      for i in $(seq 1 150); do
+        if curl -s -o /dev/null --max-time 5 "http://$IP:8000/"; then
+          echo "Supabase answered after $((i * 10))s."
+          exit 0
+        fi
+        if [ $((i % 6)) -eq 0 ]; then echo "  ... still booting, $((i * 10))s elapsed"; fi
+        sleep 10
+      done
+      echo "Timed out after 25 min. Read the boot log:" >&2
+      echo "  ssh root@$IP tail -50 /var/log/supabase-boot.log" >&2
+      exit 1
+    EOT
+  }
+}

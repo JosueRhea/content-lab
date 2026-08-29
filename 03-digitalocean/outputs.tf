@@ -22,6 +22,20 @@ output "droplet_id" {
 }
 
 output "dashboard_credentials" {
-  value     = "supabase / ${random_id.dashboard_password.hex}"
-  sensitive = true
+  description = "Studio login. Printed in the clear so it lands in the apply output."
+  value       = "supabase / ${random_id.dashboard_password.hex}"
+}
+
+output "summary" {
+  description = "Everything you need, in one block at the end of apply."
+  value       = <<-EOT
+
+    Studio     http://${digitalocean_reserved_ip.supabase.ip_address}:8000
+    Username   supabase
+    Password   ${random_id.dashboard_password.hex}
+
+    Droplet    ${digitalocean_droplet.supabase.id}
+    Shell      ssh root@${digitalocean_reserved_ip.supabase.ip_address}
+    Boot log   ssh root@${digitalocean_reserved_ip.supabase.ip_address} tail -f /var/log/supabase-boot.log
+  EOT
 }

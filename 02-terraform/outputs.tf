@@ -18,12 +18,25 @@ output "boot_progress" {
 }
 
 output "dashboard_credentials" {
-  description = "Studio login."
+  description = "Studio login. Printed in the clear so it lands in the apply output."
   value       = "supabase / ${random_id.dashboard_password.hex}"
-  sensitive   = true
 }
 
 output "instance_id" {
   description = "Used by the kill-and-recover beat."
   value       = aws_instance.supabase.id
+}
+
+output "summary" {
+  description = "Everything you need, in one block at the end of apply."
+  value       = <<-EOT
+
+    Studio     http://${aws_eip.supabase.public_ip}:8000
+    Username   supabase
+    Password   ${random_id.dashboard_password.hex}
+
+    Instance   ${aws_instance.supabase.id}
+    Shell      aws ssm start-session --target ${aws_instance.supabase.id} --region ${var.region}
+    Boot log   tail -f /var/log/supabase-boot.log  (via the shell above)
+  EOT
 }
